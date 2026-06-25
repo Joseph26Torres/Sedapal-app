@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>SEDAPAL – Zona Este</title>
+<style>
+:root{--azul:#1F3864;--azul2:#2E75B6;--azul-cl:#DEEAF1;--verde:#1E5631;--verde-cl:#D5F5E3;--rojo:#C0392B;--rojo-cl:#FADBD8;--nar:#E67E22;--nar-cl:#FDEBD0;--gris:#F4F6F9;--gris2:#E8ECF0;--gris3:#AAB0B8;--texto:#1A1A2E;--texto2:#555;--blanco:#fff}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,'Segoe UI',Arial,sans-serif;background:var(--gris);color:var(--texto);min-height:100vh}
+header{background:var(--azul);color:#fff;padding:14px 16px 10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+header h1{font-size:15px;font-weight:700}
+header p{font-size:11px;opacity:.75;margin-top:2px}
+.header-row{display:flex;justify-content:space-between;align-items:center}
+.sync-btn{background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer}
+.tabs{background:var(--azul2);display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;padding:9px 14px;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+.tab.active{color:#fff;border-bottom-color:#fff}
+.stats{display:flex;gap:6px;padding:10px 12px;background:var(--blanco);border-bottom:1px solid var(--gris2);overflow-x:auto}
+.stats::-webkit-scrollbar{display:none}
+.stat{flex:0 0 auto;padding:6px 12px;border-radius:8px;text-align:center;min-width:64px}
+.stat strong{display:block;font-size:18px;line-height:1}
+.stat span{font-size:10px;opacity:.85}
+.stat-total{background:var(--azul);color:#fff}
+.stat-r{background:var(--verde-cl);color:var(--verde)}
+.stat-p{background:var(--rojo-cl);color:var(--rojo)}
+.stat-nc{background:var(--nar-cl);color:var(--nar)}
+.filtros{background:var(--blanco);padding:8px 12px;border-bottom:1px solid var(--gris2);position:sticky;top:68px;z-index:90}
+.search{width:100%;padding:8px 12px;border:1.5px solid var(--gris2);border-radius:8px;font-size:14px;outline:none;background:var(--gris)}
+.search:focus{border-color:var(--azul2);background:#fff}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.chip{padding:4px 11px;border-radius:20px;font-size:11px;font-weight:600;border:1.5px solid var(--gris2);background:#fff;cursor:pointer;color:var(--texto2)}
+.chip.active{color:#fff;border-color:transparent}
+.chip-r.active{background:var(--verde)}.chip-p.active{background:var(--rojo)}.chip-nc.active{background:var(--nar)}.chip-na.active{background:#E65C00}.chip-all.active{background:var(--azul)}
+.seccion-est{padding:12px}
+.est-card{background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:12px}
+.est-card h3{font-size:12px;color:var(--texto2);margin-bottom:10px;font-weight:600}
+.barra-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.barra-label{font-size:11px;color:var(--texto2);width:80px;flex-shrink:0}
+.barra-wrap{flex:1;height:14px;background:var(--gris2);border-radius:7px;overflow:hidden}
+.barra-fill{height:100%;border-radius:7px}
+.barra-val{font-size:11px;font-weight:700;min-width:28px;text-align:right}
+.pie-item{display:flex;align-items:center;gap:7px;font-size:12px;margin-bottom:5px}
+.pie-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.lista{padding:10px 10px 80px;display:flex;flex-direction:column;gap:8px}
+.card{background:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-left:4px solid #ccc;cursor:pointer;transition:transform .1s}
+.card:active{transform:scale(.98)}
+.card.R{border-left-color:var(--verde)}.card.P{border-left-color:var(--rojo)}.card.NC{border-left-color:var(--nar)}.card.NO_ACCESO{border-left-color:#E65C00}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;color:#fff;flex-shrink:0}
+.badge-tb{background:var(--azul2)}.badge-lim{background:var(--verde)}.badge-piq{background:var(--nar)}.badge-rep{background:var(--rojo)}.badge-maq{background:#795548}
+.est-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;flex-shrink:0}
+.est-R{background:var(--verde-cl);color:var(--verde)}.est-P{background:var(--rojo-cl);color:var(--rojo)}.est-NC{background:var(--nar-cl);color:var(--nar)}.est-NA{background:#FFE0CC;color:#E65C00}
+.dir{font-size:13px;font-weight:600;color:var(--azul);margin:6px 0 3px;line-height:1.3}
+.meta{font-size:11px;color:var(--gris3);display:flex;flex-wrap:wrap;gap:3px 8px}
+.obs{font-size:12px;color:#444;margin-top:5px;font-style:italic}
+.empty{text-align:center;color:var(--gris3);padding:40px 20px;font-size:14px}
+.count{font-size:11px;color:var(--gris3);padding:4px 12px 0}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:82vh;overflow-y:auto;padding:18px 18px 40px}
+.modal-handle{width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 14px}
+.modal-dir{font-size:15px;font-weight:700;color:var(--azul);margin-bottom:12px;line-height:1.3}
+.modal-row{display:flex;gap:8px;margin-bottom:6px}
+.modal-label{font-size:11px;font-weight:700;color:#999;min-width:72px;padding-top:1px;text-transform:uppercase}
+.modal-val{font-size:13px;flex:1}
+.modal-obs{background:#f5f5f5;border-radius:8px;padding:10px;font-size:13px;color:#333;margin:10px 0;font-style:italic}
+.maps-btn{display:block;width:100%;padding:13px;background:var(--azul2);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;margin-top:10px;cursor:pointer;text-align:center;text-decoration:none}
+.close-btn{display:block;width:100%;padding:12px;background:var(--gris2);color:var(--texto);border:none;border-radius:10px;font-size:14px;font-weight:600;margin-top:8px;cursor:pointer}
+.loading{text-align:center;padding:60px 20px}
+.spinner{width:36px;height:36px;border:3px solid var(--gris2);border-top-color:var(--azul2);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.coord-badge{display:inline-block;font-size:10px;background:#E8F4FD;color:#2E75B6;padding:2px 6px;border-radius:4px;margin-top:4px}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-row">
+    <div><h1>SEDAPAL – Zona Este</h1><p id="sync-label">Cargando datos...</p></div>
+    <button class="sync-btn" onclick="cargarDatos()">↻ Actualizar</button>
+  </div>
+</header>
+<div class="tabs">
+  <div class="tab active" onclick="cambiarTab('EST')">📊 Estadísticas</div>
+  <div class="tab" onclick="cambiarTab('TAPAS Y BUZONES')">Tapas</div>
+  <div class="tab" onclick="cambiarTab('LIMPIEZA')">Limpieza</div>
+  <div class="tab" onclick="cambiarTab('PIQUE')">Pique</div>
+  <div class="tab" onclick="cambiarTab('REPARACIONES')">Reparaciones</div>
+  <div class="tab" onclick="cambiarTab('MAQUINARIAS')">Maquinarias</div>
+  <div class="tab" onclick="cambiarTab('TAPAS ENTREGAS')" style="background:rgba(255,255,255,.15)">Tapas Entregadas</div>
+</div>
+<div id="stats-bar" class="stats" style="display:none"></div>
+<div id="mes-bar" style="display:none;background:var(--blanco);padding:6px 12px;border-bottom:1px solid var(--gris2);overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch">
+  <span style="font-size:11px;font-weight:700;color:var(--texto2);margin-right:6px">MES:</span>
+  <span id="mes-chips"></span>
+</div>
+<div id="filtros" class="filtros" style="display:none">
+  <input class="search" id="buscar" placeholder="🔍 Buscar dirección, OT, capataz..." oninput="filtrar()">
+  <div class="chips" id="chips"></div>
+</div>
+<div class="count" id="count-label"></div>
+<div id="contenido"></div>
+<div class="overlay" id="overlay" onclick="cerrarModal(event)">
+  <div class="modal" id="modal"></div>
+</div>
+<script>
+const URLS={
+  'TAPAS Y BUZONES':'https://docs.google.com/spreadsheets/d/e/2PACX-1vS1C5__ZxdP2P-qWf3lOzSZi-CtR8ooZdGmq8nMGvZYoWEso7lD9wps47Fx1pnHrMCqzz-QUYjbZTNu/pub?gid=333041538&single=true&output=csv',
+  'LIMPIEZA':'https://docs.google.com/spreadsheets/d/e/2PACX-1vS1C5__ZxdP2P-qWf3lOzSZi-CtR8ooZdGmq8nMGvZYoWEso7lD9wps47Fx1pnHrMCqzz-QUYjbZTNu/pub?gid=368791957&single=true&output=csv',
+  'PIQUE':'https://docs.google.com/spreadsheets/d/e/2PACX-1vS1C5__ZxdP2P-qWf3lOzSZi-CtR8ooZdGmq8nMGvZYoWEso7lD9wps47Fx1pnHrMCqzz-QUYjbZTNu/pub?gid=237634938&single=true&output=csv',
+  'REPARACIONES':'https://docs.google.com/spreadsheets/d/e/2PACX-1vS1C5__ZxdP2P-qWf3lOzSZi-CtR8ooZdGmq8nMGvZYoWEso7lD9wps47Fx1pnHrMCqzz-QUYjbZTNu/pub?gid=96652391&single=true&output=csv',
+  'MAQUINARIAS':'https://docs.google.com/spreadsheets/d/e/2PACX-1vS1C5__ZxdP2P-qWf3lOzSZi-CtR8ooZdGmq8nMGvZYoWEso7lD9wps47Fx1pnHrMCqzz-QUYjbZTNu/pub?gid=735695297&single=true&output=csv',
+  'TAPAS ENTREGAS':'https://docs.google.com/spreadsheets/d/e/2PACX-1vS1C5__ZxdP2P-qWf3lOzSZi-CtR8ooZdGmq8nMGvZYoWEso7lD9wps47Fx1pnHrMCqzz-QUYjbZTNu/pub?gid=318285265&single=true&output=csv'
+};
+const HOJAS=Object.keys(URLS);
+const COD={'3':'Ate','8':'Chaclacayo','10':'El Agustino','12':'La Molina','15':'Lurigancho','30':'San Luis','40':'Cieneguilla','43':'Santa Anita'};
+const BADGE={'TAPAS Y BUZONES':'badge-tb','LIMPIEZA':'badge-lim','PIQUE':'badge-piq','REPARACIONES':'badge-rep','MAQUINARIAS':'badge-maq','TAPAS ENTREGAS':'badge-tb'};
+const LABEL={'TAPAS Y BUZONES':'Tapas','LIMPIEZA':'Limpieza','PIQUE':'Pique','REPARACIONES':'Reparac.','MAQUINARIAS':'Maquinaria','TAPAS ENTREGAS':'Entregas'};
+const EL={'R':'✅ Resuelto','P':'⏳ Pendiente','NC':'⚠️ No corresp.','NO ACCESO':'🚫 Sin acceso'};
+const ECL={'R':'est-R','P':'est-P','NC':'est-NC','NO ACCESO':'est-NA'};
+
+const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+let DATOS={},tabActual='EST',filtroEst='',filtroMes=new Date().getMonth()+1,visibles=[];
+function parseFecha(s){
+  if(!s)return null;
+  const p=s.trim().split('/');if(p.length!==3)return null;
+  let d,m,y;
+  if(parseInt(p[2])>31){y=parseInt(p[2]);m=parseInt(p[0]);d=parseInt(p[1]);}
+  else{d=parseInt(p[0]);m=parseInt(p[1]);y=parseInt(p[2]);}
+  return{d,m,y};
+}
+function mesDeReg(r){const f=parseFecha(r.fecha);return f?f.m:null;}
+
+function parseCSV(txt){
+  const lines=txt.replace(/\r/g,'').split('\n');
+  return lines.map(line=>{
+    const cols=[];let cur='',inQ=false;
+    for(let c of line){
+      if(c==='"'){inQ=!inQ;continue;}
+      if(c===','&&!inQ){cols.push(cur.trim());cur='';}
+      else cur+=c;
+    }
+    cols.push(cur.trim());
+    return cols;
+  });
+}
+
+function findHeaderRow(rows,hoja){
+  if(hoja==='TAPAS ENTREGAS'){
+    // Fila 1: banner, Fila 2: contador, Fila 3 (indice 2): encabezados
+    return 2;
+  }
+  for(let i=0;i<Math.min(rows.length,8);i++){
+    const r=rows[i].join(',').toUpperCase();
+    if(r.includes('DIRECCI')&&r.includes('ESTADO'))return i;
+  }
+  return 3;
+}
+
+function norm(s){
+  return(s||'').toUpperCase()
+    .replace(/[ÁÀÂÄ]/g,'A').replace(/[ÉÈÊË]/g,'E')
+    .replace(/[ÍÌÎÏ]/g,'I').replace(/[ÓÒÔÖ]/g,'O')
+    .replace(/[ÚÙÛÜ]/g,'U').replace(/Ñ/g,'N').trim();
+}
+
+// Contar tapas en una observación
+function contarTapas(obs){
+  const o=norm(obs||'');
+  // Excluir si es HJ que requirió cambio de tapa
+  if(o.includes('REQUIRIO CAMBIO DE TAPA PARA')&&o.includes('HJ'))return 0;
+  if(o.includes('PARA REALIZAR EL DESATORO')&&o.includes('TAPA'))return 0;
+  // Buscar "2 TAPAS" o "DOS TAPAS"
+  if(o.match(/2\s*TAPAS|DOS\s*TAPAS/))return 2;
+  // Cualquier mención de tapa
+  if(o.match(/COLOCO\s*TAPA|CAMBIO\s*TAPA|CAMBIO\s*DE\s*TAPA|SE\s*INSTALO\s*TAPA|NUEVA\s*TAPA|TAPA\s*DE\s*BUZON|TAPA\s*BUZON|MARCO\s*Y\s*TAPA/))return 1;
+  return 0;
+}
+
+function parseMapsUrl(d){
+  if(d.ubicacion&&d.ubicacion.trim()){
+    // formato: -12.0538, -76.9827 o -12.0538,-76.9827
+    const parts=d.ubicacion.replace(/\s/g,'').split(',');
+    if(parts.length>=2&&!isNaN(parts[0])&&!isNaN(parts[1])){
+      return`https://www.google.com/maps?q=${parts[0]},${parts[1]}`;
+    }
+  }
+  return`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.dir+', Lima, Peru')}`;
+}
+
+function parseHoja(txt,hoja){
+  const rows=parseCSV(txt);
+  const hi=findHeaderRow(rows,hoja);
+  const headers=rows[hi].map(h=>norm(h));
+  const get=name=>headers.findIndex(h=>h.includes(name));
+  const iDir=get('DIRECCI');const iFecha=get('FECHA');const iTurno=get('TURNO');
+  const iZona=get('ZONA');const iOT=headers.indexOf('OT');
+  const iCod=get('COD DIST');const iObs=get('OBSERVACI');
+  const iEst=get('ESTADO');const iCap=get('CAPATAZ');const iMaq=get('MAQUINARIA');
+  const iUbic=get('UBICACION');
+
+  const result=[];
+  for(let i=hi+1;i<rows.length;i++){
+    const r=rows[i];
+    const dir=iDir>=0?r[iDir]:'';
+    const est=iEst>=0?(r[iEst]||'').trim():'';
+    // TAPAS ENTREGAS no tiene ESTADO, usar FECHA como validador
+    if(hoja==='TAPAS ENTREGAS'){
+      const fecha=iFecha>=0?(r[iFecha]||''):'';
+      if(!fecha||!fecha.trim())continue;
+    } else {
+      if(!dir||!dir.trim()||!est||est==='ESTADO')continue;
+    }
+    const cod=iCod>=0?(r[iCod]||'').trim():'';
+    const obs=iObs>=0?(r[iObs]||''):'';
+    result.push({
+      hoja,dir:dir.trim(),
+      fecha:iFecha>=0?(r[iFecha]||''):'',
+      turno:iTurno>=0?(r[iTurno]||''):'',
+      zona:iZona>=0?(r[iZona]||''):'',
+      ot:iOT>=0?(r[iOT]||''):'',
+      cod,dist:COD[cod]||'',
+      obs,estado:est,
+      capataz:iCap>=0?(r[iCap]||''):'',
+      maq:iMaq>=0?(r[iMaq]||''):'',
+      ubicacion:iUbic>=0?(r[iUbic]||''):'',
+      tapas:contarTapas(obs),
+    });
+  }
+  return result;
+}
+
+async function cargarDatos(){
+  document.getElementById('sync-label').textContent='Actualizando...';
+  document.getElementById('contenido').innerHTML='<div class="loading"><div class="spinner"></div><p style="color:#888;font-size:14px">Conectando con Google Sheets...</p></div>';
+  document.getElementById('stats-bar').style.display='none';
+  document.getElementById('filtros').style.display='none';
+  document.getElementById('count-label').textContent='';
+  let errores=[];
+  for(const hoja of HOJAS){
+    try{
+      const r=await fetch(URLS[hoja]);
+      if(!r.ok)throw new Error(r.status);
+      DATOS[hoja]=parseHoja(await r.text(),hoja);
+    }catch(e){DATOS[hoja]=[];errores.push(hoja);}
+  }
+  const total=HOJAS.reduce((a,h)=>a+(DATOS[h]||[]).length,0);
+  const ahora=new Date();
+  if(errores.length===HOJAS.length){
+    document.getElementById('sync-label').textContent='Error de conexión';
+    document.getElementById('contenido').innerHTML='<div class="empty">⚠️ No se pudo conectar con Google Sheets.<br><br><small style="color:#aaa">Verifica tu conexión a internet</small></div>';
+    return;
+  }
+  document.getElementById('sync-label').textContent=`${total} registros · ${ahora.getHours()}:${String(ahora.getMinutes()).padStart(2,'0')}`;
+  renderTab(tabActual);
+}
+
+function cambiarTab(tab){
+  tabActual=tab;filtroEst='';
+  const tabs=['EST','TAPAS Y BUZONES','LIMPIEZA','PIQUE','REPARACIONES','MAQUINARIAS','TAPAS ENTREGAS'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===tab));
+  renderTab(tab);
+}
+
+function renderTab(tab){
+  if(tab==='EST'){
+    document.getElementById('stats-bar').style.display='none';
+    document.getElementById('filtros').style.display='none';
+    document.getElementById('count-label').textContent='';
+    renderEst();return;
+  }
+  document.getElementById('stats-bar').style.display='flex';
+  document.getElementById('filtros').style.display='block';
+  document.getElementById('buscar').value='';
+  renderStatBar(tab);renderChips();filtrar();
+}
+
+function renderStatBar(tab){
+  const d=DATOS[tab]||[];
+  const r=d.filter(x=>x.estado==='R').length,p=d.filter(x=>x.estado==='P').length,nc=d.filter(x=>x.estado==='NC').length;
+  document.getElementById('stats-bar').innerHTML=
+    `<div class="stat stat-total"><strong>${d.length}</strong><span>Total</span></div>
+     <div class="stat stat-r"><strong>${r}</strong><span>Resueltos</span></div>
+     <div class="stat stat-p"><strong>${p}</strong><span>Pendientes</span></div>
+     <div class="stat stat-nc"><strong>${nc}</strong><span>No corr.</span></div>`;
+}
+
+function renderChips(){
+  const ops=[{v:'',l:'Todos',c:'chip-all'},{v:'R',l:'✅ Resuelto',c:'chip-r'},{v:'P',l:'⏳ Pendiente',c:'chip-p'},{v:'NC',l:'⚠️ No corresp.',c:'chip-nc'},{v:'NO ACCESO',l:'🚫 Sin acceso',c:'chip-na'}];
+  document.getElementById('chips').innerHTML=ops.map(o=>`<div class="chip ${o.c}${filtroEst===o.v?' active':''}" onclick="setEst('${o.v}')">${o.l}</div>`).join('');
+}
+
+function setEst(v){filtroEst=v;renderChips();filtrar();}
+
+function renderMesChips(){
+  const bar=document.getElementById('mes-chip');
+  const mesesDisp=[0,1,2,3,4,5,6,7,8,9,10,11];
+  document.getElementById('mes-chips').innerHTML=
+    ['Todos',...MESES].map((m,i)=>`<span onclick="setMes(${i===0?0:i})" style="display:inline-block;margin-right:4px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid var(--gris2);background:${(i===0&&filtroMes===0)||(i>0&&filtroMes===i)?'var(--azul2)':'#fff'};color:${(i===0&&filtroMes===0)||(i>0&&filtroMes===i)?'#fff':'var(--texto2)'}">${m}</span>`).join('');
+}
+function setMes(m){filtroMes=m;renderMesChips();filtrar();}
+function filtrar(){
+  const busq=(document.getElementById('buscar').value||'').toLowerCase();
+  const data=DATOS[tabActual]||[];
+  visibles=data.filter(d=>{
+    if(filtroEst&&d.estado!==filtroEst)return false;
+    if(filtroMes>0&&mesDeReg(d)!==filtroMes)return false;
+    if(busq&&!`${d.dir} ${d.ot} ${d.capataz} ${d.obs} ${d.dist}`.toLowerCase().includes(busq))return false;
+    return true;
+  });
+  document.getElementById('count-label').textContent=`${visibles.length} registro${visibles.length!==1?'s':''}`;
+  if(!visibles.length){document.getElementById('contenido').innerHTML='<div class="empty">🔍 Sin resultados</div>';return;}
+  document.getElementById('contenido').innerHTML='<div class="lista">'+visibles.map((d,i)=>{
+    const ec=d.estado==='NO ACCESO'?'NO_ACCESO':d.estado;
+    const tieneUbic=d.ubicacion&&d.ubicacion.trim();
+    return`<div class="card ${ec}" onclick="abrirModal(${i})">
+      <div class="card-top">
+        <span class="badge ${BADGE[d.hoja]||'badge-maq'}">${LABEL[d.hoja]||d.hoja}</span>
+        <span class="est-badge ${ECL[d.estado]||'est-P'}">${EL[d.estado]||d.estado}</span>
+      </div>
+      <div class="dir">${d.dir}</div>
+      <div class="meta">
+        ${d.fecha?`<span>${d.fecha}</span>`:''}
+        ${d.turno?`<span>${d.turno.split(':')[0]}</span>`:''}
+        ${d.dist?`<span>${d.dist}</span>`:''}
+        ${d.ot?`<span>OT ${d.ot}</span>`:''}
+        ${d.maq?`<span>🔧${d.maq}</span>`:''}
+      </div>
+      ${d.hoja==='TAPAS ENTREGAS'?`
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+          <span style="font-size:12px;color:var(--texto2)">👷 ${d.capataz||'-'} &nbsp;|&nbsp; ${d.zona||'-'} &nbsp;|&nbsp; ${d.maq||'-'}</span>
+          <span style="font-size:18px;font-weight:700;color:var(--azul)">${d.cant||0} tapas</span>
+        </div>`:
+        `${d.obs?`<div class="obs">${d.obs.slice(0,90)}${d.obs.length>90?'…':''}</div>`:''}
+        ${tieneUbic?`<span class="coord-badge">📍 Coordenadas exactas</span>`:''}`}
+    </div>`;
+  }).join('')+'</div>';
+}
+
+function abrirModal(i){
+  const d=visibles[i];if(!d)return;
+  const mapsUrl=parseMapsUrl(d);
+  const tieneUbic=d.ubicacion&&d.ubicacion.trim();
+  document.getElementById('modal').innerHTML=`
+    <div class="modal-handle"></div>
+    <span class="badge ${BADGE[d.hoja]||'badge-maq'}" style="margin-bottom:10px;display:inline-block">${d.hoja}</span>
+    <div class="modal-dir">${d.dir}</div>
+    <div class="modal-row"><div class="modal-label">Estado</div><div class="modal-val">${EL[d.estado]||d.estado}</div></div>
+    <div class="modal-row"><div class="modal-label">Fecha</div><div class="modal-val">${d.fecha||'-'}</div></div>
+    <div class="modal-row"><div class="modal-label">Turno</div><div class="modal-val">${d.turno||'-'}</div></div>
+    <div class="modal-row"><div class="modal-label">Zona</div><div class="modal-val">${d.zona||'-'}</div></div>
+    <div class="modal-row"><div class="modal-label">Distrito</div><div class="modal-val">${d.dist||d.cod||'-'}</div></div>
+    ${d.ot?`<div class="modal-row"><div class="modal-label">OT</div><div class="modal-val">${d.ot}</div></div>`:''}
+    ${d.maq?`<div class="modal-row"><div class="modal-label">Maquinaria</div><div class="modal-val">${d.maq}</div></div>`:''}
+    ${d.capataz?`<div class="modal-row"><div class="modal-label">Capataz</div><div class="modal-val">${d.capataz}</div></div>`:''}
+    ${d.obs?`<div class="modal-obs">${d.obs}</div>`:''}
+    ${d.hoja==='TAPAS ENTREGAS'?`
+      <div class="modal-row"><div class="modal-label">Responsable</div><div class="modal-val">${d.capataz||'-'}</div></div>
+      <div class="modal-row"><div class="modal-label">Zona</div><div class="modal-val">${d.zona||'-'}</div></div>
+      <div class="modal-row"><div class="modal-label">Tipo</div><div class="modal-val">${d.maq||'-'}</div></div>
+      <div class="modal-row"><div class="modal-label">Cant. Tapas</div><div class="modal-val" style="font-size:20px;font-weight:700;color:var(--azul)">${d.cant||0}</div></div>
+    `:`<a href="${mapsUrl}" target="_blank" class="maps-btn">📍 ${tieneUbic?'Ver ubicación exacta en Maps':'Buscar en Google Maps'}</a>`}
+    <button class="close-btn" onclick="cerrarModal()">Cerrar</button>`;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function cerrarModal(e){
+  if(!e||e.target===document.getElementById('overlay'))
+    document.getElementById('overlay').classList.remove('open');
+}
+
+function renderEst(){
+  const todas=HOJAS.filter(h=>h!=='TAPAS ENTREGAS').flatMap(h=>DATOS[h]||[]);
+  const hj=(DATOS['MAQUINARIAS']||[]).filter(d=>d.maq==='HJ');
+  const mb=(DATOS['MAQUINARIAS']||[]).filter(d=>d.maq==='MB');
+  const tapas=DATOS['TAPAS Y BUZONES']||[];
+  const entregas=DATOS['TAPAS ENTREGAS']||[];
+
+  const totalTapas=tapas.reduce((a,d)=>a+d.tapas,0);
+  const tapasR=tapas.filter(d=>d.estado==='R').reduce((a,d)=>a+d.tapas,0);
+  const tapasP=tapas.filter(d=>d.estado==='P').reduce((a,d)=>a+d.tapas,0);
+  const hjR=hj.filter(d=>d.estado==='R').length,hjP=hj.filter(d=>d.estado==='P').length;
+  const mbR=mb.filter(d=>d.estado==='R').length,mbP=mb.filter(d=>d.estado==='P').length;
+
+  // Tapas entregadas: leer columna CANT. TAPAS (col 5 aprox) o buscar numero en obs
+  const totalEntregas=entregas.reduce((a,d)=>{
+    const v=parseInt(d.cant||d.tapas||0)||0;
+    return a+v;
+  },0);
+  const porMesEnt={};
+  entregas.forEach(d=>{
+    const m=mesDeReg(d);
+    const v=parseInt(d.cant||d.tapas||0)||0;
+    if(m&&v>0)porMesEnt[m]=(porMesEnt[m]||0)+v;
+  });
+  const mesesEnt=Object.entries(porMesEnt).sort((a,b)=>parseInt(a[0])-parseInt(b[0]));
+  const maxMesEnt=Math.max(...mesesEnt.map(([,v])=>v),1);
+
+  const distHJ={},distTap={};
+  Object.values(COD).forEach(d=>{distHJ[d]=0;distTap[d]=0;});
+  hj.filter(d=>d.estado==='P').forEach(d=>{if(d.dist)distHJ[d.dist]=(distHJ[d.dist]||0)+1;});
+  tapas.filter(d=>d.estado==='P').forEach(d=>{if(d.dist)distTap[d.dist]=(distTap[d.dist]||0)+d.tapas;});
+  const hjDist=Object.entries(distHJ).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const tapDist=Object.entries(distTap).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const maxHJ=Math.max(...hjDist.map(([,v])=>v),1);
+  const maxTap=Math.max(...tapDist.map(([,v])=>v),1);
+  const porTipo=HOJAS.filter(h=>h!=='TAPAS ENTREGAS').map(h=>({h,t:(DATOS[h]||[]).length,r:(DATOS[h]||[]).filter(d=>d.estado==='R').length,p:(DATOS[h]||[]).filter(d=>d.estado==='P').length}));
+  const maxT=Math.max(...porTipo.map(x=>x.t),1);
+
+  document.getElementById('contenido').innerHTML=`<div class="seccion-est">
+    <div class="est-card" style="display:flex;gap:0">
+      ${[['Total',todas.length,'var(--azul)'],['Resueltos',todas.filter(d=>d.estado==='R').length,'var(--verde)'],['Pendientes',todas.filter(d=>d.estado==='P').length,'var(--rojo)']].map(([l,v,c])=>`
+      <div style="flex:1;text-align:center;padding:4px">
+        <div style="font-size:26px;font-weight:700;color:${c}">${v}</div>
+        <div style="font-size:11px;color:var(--texto2)">${l}</div>
+      </div>`).join('<div style="width:1px;background:var(--gris2)"></div>')}
+    </div>
+
+    <div class="est-card">
+      <h3>🔩 Tapas instaladas / cambiadas</h3>
+      <div style="display:flex;gap:0;margin-bottom:10px">
+        <div style="flex:1;text-align:center"><div style="font-size:28px;font-weight:700;color:var(--azul)">${totalTapas}</div><div style="font-size:11px;color:var(--texto2)">Total tapas</div></div>
+        <div style="width:1px;background:var(--gris2)"></div>
+        <div style="flex:1;text-align:center"><div style="font-size:28px;font-weight:700;color:var(--verde)">${tapasR}</div><div style="font-size:11px;color:var(--texto2)">Colocadas</div></div>
+        <div style="width:1px;background:var(--gris2)"></div>
+        <div style="flex:1;text-align:center"><div style="font-size:28px;font-weight:700;color:var(--rojo)">${tapasP}</div><div style="font-size:11px;color:var(--texto2)">Pendientes</div></div>
+      </div>
+      <div style="height:8px;border-radius:4px;background:var(--gris2);overflow:hidden">
+        <div style="height:100%;width:${totalTapas>0?Math.round(tapasR/totalTapas*100):0}%;background:var(--azul2);border-radius:4px"></div>
+      </div>
+      <div style="font-size:10px;color:var(--gris3);text-align:right;margin-top:2px">${totalTapas>0?Math.round(tapasR/totalTapas*100):0}% completado</div>
+    </div>
+
+    <div class="est-card">
+      <h3>Tapas entregadas a cuadrillas</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:28px;font-weight:700;color:var(--azul)">${totalEntregas}</div>
+        <div style="font-size:11px;color:var(--gris3)">Total acumulado</div>
+      </div>
+      ${mesesEnt.length>0?mesesEnt.map(([m,v])=>`
+        <div class="barra-row">
+          <div class="barra-label">${MESES[parseInt(m)-1]}</div>
+          <div class="barra-wrap"><div class="barra-fill" style="width:${Math.round(v/maxMesEnt*100)}%;background:var(--azul2)"></div></div>
+          <div class="barra-val" style="color:var(--azul2)">${v}</div>
+        </div>`).join(''):'<p style="font-size:12px;color:var(--gris3)">Sin datos aún</p>'}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div class="est-card" style="margin-bottom:0">
+        <h3>Hidrojet (HJ)</h3>
+        <div class="pie-item"><div class="pie-dot" style="background:var(--verde)"></div><span style="flex:1;font-size:11px">Ejec.</span><b>${hjR}</b></div>
+        <div class="pie-item"><div class="pie-dot" style="background:var(--rojo)"></div><span style="flex:1;font-size:11px">Pend.</span><b>${hjP}</b></div>
+        <div style="margin-top:8px;height:8px;border-radius:4px;background:var(--gris2);overflow:hidden">
+          <div style="height:100%;width:${hjR+hjP>0?Math.round(hjR/(hjR+hjP)*100):0}%;background:var(--verde);border-radius:4px"></div>
+        </div>
+        <div style="font-size:10px;color:var(--gris3);text-align:right;margin-top:2px">${hjR+hjP>0?Math.round(hjR/(hjR+hjP)*100):0}% listo</div>
+      </div>
+      <div class="est-card" style="margin-bottom:0">
+        <h3>Máq. Balde (MB)</h3>
+        <div class="pie-item"><div class="pie-dot" style="background:var(--verde)"></div><span style="flex:1;font-size:11px">Ejec.</span><b>${mbR}</b></div>
+        <div class="pie-item"><div class="pie-dot" style="background:var(--rojo)"></div><span style="flex:1;font-size:11px">Pend.</span><b>${mbP}</b></div>
+        <div style="margin-top:8px;height:8px;border-radius:4px;background:var(--gris2);overflow:hidden">
+          <div style="height:100%;width:${mbR+mbP>0?Math.round(mbR/(mbR+mbP)*100):0}%;background:var(--verde);border-radius:4px"></div>
+        </div>
+        <div style="font-size:10px;color:var(--gris3);text-align:right;margin-top:2px">${mbR+mbP>0?Math.round(mbR/(mbR+mbP)*100):0}% listo</div>
+      </div>
+    </div>
+
+    ${hjDist.length?`<div class="est-card">
+      <h3>⏳ Pendientes HJ por distrito</h3>
+      ${hjDist.map(([d,v])=>`<div class="barra-row"><div class="barra-label">${d}</div><div class="barra-wrap"><div class="barra-fill" style="width:${Math.round(v/maxHJ*100)}%;background:var(--rojo)"></div></div><div class="barra-val" style="color:var(--rojo)">${v}</div></div>`).join('')}
+    </div>`:''}
+
+    ${tapDist.length?`<div class="est-card">
+      <h3>⏳ Tapas pendientes por distrito</h3>
+      ${tapDist.map(([d,v])=>`<div class="barra-row"><div class="barra-label">${d}</div><div class="barra-wrap"><div class="barra-fill" style="width:${Math.round(v/maxTap*100)}%;background:var(--azul2)"></div></div><div class="barra-val" style="color:var(--azul2)">${v}</div></div>`).join('')}
+    </div>`:''}
+
+    <div class="est-card">
+      <h3>Trabajos por categoría</h3>
+      ${porTipo.map(x=>`<div class="barra-row">
+        <div class="barra-label" style="font-size:10px">${LABEL[x.h]}</div>
+        <div class="barra-wrap"><div class="barra-fill" style="width:${Math.round(x.r/maxT*100)}%;background:var(--verde)"></div></div>
+        <div class="barra-val" style="color:var(--verde);font-size:10px">${x.r}R</div>
+        <div class="barra-val" style="color:var(--rojo);font-size:10px">${x.p}P</div>
+      </div>`).join('')}
+    </div>
+
+    <p style="font-size:11px;color:var(--gris3);text-align:center;padding-bottom:20px">Toca ↻ Actualizar para refrescar desde Google Sheets</p>
+  </div>`;
+}
+cargarDatos();
+</script>
+</body>
+</html>
