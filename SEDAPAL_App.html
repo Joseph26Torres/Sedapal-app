@@ -89,8 +89,13 @@ header p{font-size:11px;opacity:.75;margin-top:2px}
   <div class="tab" onclick="cambiarTab('PIQUE')">Pique</div>
   <div class="tab" onclick="cambiarTab('REPARACIONES')">Reparaciones</div>
   <div class="tab" onclick="cambiarTab('MAQUINARIAS')">Maquinarias</div>
+  <div class="tab" onclick="cambiarTab('TAPAS ENTREGAS')" style="background:rgba(255,255,255,.15)">📦 Entregas</div>
 </div>
 <div id="stats-bar" class="stats" style="display:none"></div>
+<div id="mes-bar" style="display:none;background:var(--blanco);padding:6px 12px;border-bottom:1px solid var(--gris2);overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch">
+  <span style="font-size:11px;font-weight:700;color:var(--texto2);margin-right:6px">MES:</span>
+  <span id="mes-chips"></span>
+</div>
 <div id="filtros" class="filtros" style="display:none">
   <input class="search" id="buscar" placeholder="🔍 Buscar dirección, OT, capataz..." oninput="filtrar()">
   <div class="chips" id="chips"></div>
@@ -106,16 +111,27 @@ const URLS={
   'LIMPIEZA':'https://docs.google.com/spreadsheets/d/e/2PACX-1vS1C5__ZxdP2P-qWf3lOzSZi-CtR8ooZdGmq8nMGvZYoWEso7lD9wps47Fx1pnHrMCqzz-QUYjbZTNu/pub?gid=368791957&single=true&output=csv',
   'PIQUE':'https://docs.google.com/spreadsheets/d/e/2PACX-1vS1C5__ZxdP2P-qWf3lOzSZi-CtR8ooZdGmq8nMGvZYoWEso7lD9wps47Fx1pnHrMCqzz-QUYjbZTNu/pub?gid=237634938&single=true&output=csv',
   'REPARACIONES':'https://docs.google.com/spreadsheets/d/e/2PACX-1vS1C5__ZxdP2P-qWf3lOzSZi-CtR8ooZdGmq8nMGvZYoWEso7lD9wps47Fx1pnHrMCqzz-QUYjbZTNu/pub?gid=96652391&single=true&output=csv',
-  'MAQUINARIAS':'https://docs.google.com/spreadsheets/d/e/2PACX-1vS1C5__ZxdP2P-qWf3lOzSZi-CtR8ooZdGmq8nMGvZYoWEso7lD9wps47Fx1pnHrMCqzz-QUYjbZTNu/pub?gid=735695297&single=true&output=csv'
+  'MAQUINARIAS':'https://docs.google.com/spreadsheets/d/e/2PACX-1vS1C5__ZxdP2P-qWf3lOzSZi-CtR8ooZdGmq8nMGvZYoWEso7lD9wps47Fx1pnHrMCqzz-QUYjbZTNu/pub?gid=735695297&single=true&output=csv',
+  'TAPAS ENTREGAS':'https://docs.google.com/spreadsheets/d/e/2PACX-1vS1C5__ZxdP2P-qWf3lOzSZi-CtR8ooZdGmq8nMGvZYoWEso7lD9wps47Fx1pnHrMCqzz-QUYjbZTNu/pub?gid=318285265&single=true&output=csv'
 };
 const HOJAS=Object.keys(URLS);
 const COD={'3':'Ate','8':'Chaclacayo','10':'El Agustino','12':'La Molina','15':'Lurigancho','30':'San Luis','40':'Cieneguilla','43':'Santa Anita'};
-const BADGE={'TAPAS Y BUZONES':'badge-tb','LIMPIEZA':'badge-lim','PIQUE':'badge-piq','REPARACIONES':'badge-rep','MAQUINARIAS':'badge-maq'};
-const LABEL={'TAPAS Y BUZONES':'Tapas','LIMPIEZA':'Limpieza','PIQUE':'Pique','REPARACIONES':'Reparac.','MAQUINARIAS':'Maquinaria'};
+const BADGE={'TAPAS Y BUZONES':'badge-tb','LIMPIEZA':'badge-lim','PIQUE':'badge-piq','REPARACIONES':'badge-rep','MAQUINARIAS':'badge-maq','TAPAS ENTREGAS':'badge-tb'};
+const LABEL={'TAPAS Y BUZONES':'Tapas','LIMPIEZA':'Limpieza','PIQUE':'Pique','REPARACIONES':'Reparac.','MAQUINARIAS':'Maquinaria','TAPAS ENTREGAS':'Entregas'};
 const EL={'R':'✅ Resuelto','P':'⏳ Pendiente','NC':'⚠️ No corresp.','NO ACCESO':'🚫 Sin acceso'};
 const ECL={'R':'est-R','P':'est-P','NC':'est-NC','NO ACCESO':'est-NA'};
 
-let DATOS={},tabActual='EST',filtroEst='',visibles=[];
+const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+let DATOS={},tabActual='EST',filtroEst='',filtroMes=new Date().getMonth()+1,visibles=[];
+function parseFecha(s){
+  if(!s)return null;
+  const p=s.trim().split('/');if(p.length!==3)return null;
+  let d,m,y;
+  if(parseInt(p[2])>31){y=parseInt(p[2]);m=parseInt(p[0]);d=parseInt(p[1]);}
+  else{d=parseInt(p[0]);m=parseInt(p[1]);y=parseInt(p[2]);}
+  return{d,m,y};
+}
+function mesDeReg(r){const f=parseFecha(r.fecha);return f?f.m:null;}
 
 function parseCSV(txt){
   const lines=txt.replace(/\r/g,'').split('\n');
@@ -233,7 +249,7 @@ async function cargarDatos(){
 
 function cambiarTab(tab){
   tabActual=tab;filtroEst='';
-  const tabs=['EST','TAPAS Y BUZONES','LIMPIEZA','PIQUE','REPARACIONES','MAQUINARIAS'];
+  const tabs=['EST','TAPAS Y BUZONES','LIMPIEZA','PIQUE','REPARACIONES','MAQUINARIAS','TAPAS ENTREGAS'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===tab));
   renderTab(tab);
 }
@@ -268,11 +284,19 @@ function renderChips(){
 
 function setEst(v){filtroEst=v;renderChips();filtrar();}
 
+function renderMesChips(){
+  const bar=document.getElementById('mes-chip');
+  const mesesDisp=[0,1,2,3,4,5,6,7,8,9,10,11];
+  document.getElementById('mes-chips').innerHTML=
+    ['Todos',...MESES].map((m,i)=>`<span onclick="setMes(${i===0?0:i})" style="display:inline-block;margin-right:4px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid var(--gris2);background:${(i===0&&filtroMes===0)||(i>0&&filtroMes===i)?'var(--azul2)':'#fff'};color:${(i===0&&filtroMes===0)||(i>0&&filtroMes===i)?'#fff':'var(--texto2)'}">${m}</span>`).join('');
+}
+function setMes(m){filtroMes=m;renderMesChips();filtrar();}
 function filtrar(){
   const busq=(document.getElementById('buscar').value||'').toLowerCase();
   const data=DATOS[tabActual]||[];
   visibles=data.filter(d=>{
     if(filtroEst&&d.estado!==filtroEst)return false;
+    if(filtroMes>0&&mesDeReg(d)!==filtroMes)return false;
     if(busq&&!`${d.dir} ${d.ot} ${d.capataz} ${d.obs} ${d.dist}`.toLowerCase().includes(busq))return false;
     return true;
   });
@@ -328,20 +352,32 @@ function cerrarModal(e){
 }
 
 function renderEst(){
-  const todas=HOJAS.flatMap(h=>DATOS[h]||[]);
+  const todas=HOJAS.filter(h=>h!=='TAPAS ENTREGAS').flatMap(h=>DATOS[h]||[]);
   const hj=(DATOS['MAQUINARIAS']||[]).filter(d=>d.maq==='HJ');
   const mb=(DATOS['MAQUINARIAS']||[]).filter(d=>d.maq==='MB');
   const tapas=DATOS['TAPAS Y BUZONES']||[];
+  const entregas=DATOS['TAPAS ENTREGAS']||[];
 
-  // Conteo real de tapas instaladas/cambiadas
   const totalTapas=tapas.reduce((a,d)=>a+d.tapas,0);
   const tapasR=tapas.filter(d=>d.estado==='R').reduce((a,d)=>a+d.tapas,0);
   const tapasP=tapas.filter(d=>d.estado==='P').reduce((a,d)=>a+d.tapas,0);
-
   const hjR=hj.filter(d=>d.estado==='R').length,hjP=hj.filter(d=>d.estado==='P').length;
   const mbR=mb.filter(d=>d.estado==='R').length,mbP=mb.filter(d=>d.estado==='P').length;
 
-  // Pendientes HJ por distrito
+  // Tapas entregadas: leer columna CANT. TAPAS (col 5 aprox) o buscar numero en obs
+  const totalEntregas=entregas.reduce((a,d)=>{
+    const v=parseInt(d.cant||'')||parseInt((d.obs||'').replace(/[^0-9]/g,''))||0;
+    return a+v;
+  },0);
+  const porMesEnt={};
+  entregas.forEach(d=>{
+    const m=mesDeReg(d);
+    const v=parseInt(d.cant||'')||parseInt((d.obs||'').replace(/[^0-9]/g,''))||0;
+    if(m&&v>0)porMesEnt[m]=(porMesEnt[m]||0)+v;
+  });
+  const mesesEnt=Object.entries(porMesEnt).sort((a,b)=>parseInt(a[0])-parseInt(b[0]));
+  const maxMesEnt=Math.max(...mesesEnt.map(([,v])=>v),1);
+
   const distHJ={},distTap={};
   Object.values(COD).forEach(d=>{distHJ[d]=0;distTap[d]=0;});
   hj.filter(d=>d.estado==='P').forEach(d=>{if(d.dist)distHJ[d.dist]=(distHJ[d.dist]||0)+1;});
@@ -350,12 +386,10 @@ function renderEst(){
   const tapDist=Object.entries(distTap).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
   const maxHJ=Math.max(...hjDist.map(([,v])=>v),1);
   const maxTap=Math.max(...tapDist.map(([,v])=>v),1);
-
-  const porTipo=HOJAS.map(h=>({h,t:(DATOS[h]||[]).length,r:(DATOS[h]||[]).filter(d=>d.estado==='R').length,p:(DATOS[h]||[]).filter(d=>d.estado==='P').length}));
+  const porTipo=HOJAS.filter(h=>h!=='TAPAS ENTREGAS').map(h=>({h,t:(DATOS[h]||[]).length,r:(DATOS[h]||[]).filter(d=>d.estado==='R').length,p:(DATOS[h]||[]).filter(d=>d.estado==='P').length}));
   const maxT=Math.max(...porTipo.map(x=>x.t),1);
 
   document.getElementById('contenido').innerHTML=`<div class="seccion-est">
-
     <div class="est-card" style="display:flex;gap:0">
       ${[['Total',todas.length,'var(--azul)'],['Resueltos',todas.filter(d=>d.estado==='R').length,'var(--verde)'],['Pendientes',todas.filter(d=>d.estado==='P').length,'var(--rojo)']].map(([l,v,c])=>`
       <div style="flex:1;text-align:center;padding:4px">
@@ -364,29 +398,33 @@ function renderEst(){
       </div>`).join('<div style="width:1px;background:var(--gris2)"></div>')}
     </div>
 
-    <!-- TAPAS CONTEO REAL -->
     <div class="est-card">
       <h3>🔩 Tapas instaladas / cambiadas</h3>
       <div style="display:flex;gap:0;margin-bottom:10px">
-        <div style="flex:1;text-align:center">
-          <div style="font-size:28px;font-weight:700;color:var(--azul)">${totalTapas}</div>
-          <div style="font-size:11px;color:var(--texto2)">Total tapas</div>
-        </div>
+        <div style="flex:1;text-align:center"><div style="font-size:28px;font-weight:700;color:var(--azul)">${totalTapas}</div><div style="font-size:11px;color:var(--texto2)">Total tapas</div></div>
         <div style="width:1px;background:var(--gris2)"></div>
-        <div style="flex:1;text-align:center">
-          <div style="font-size:28px;font-weight:700;color:var(--verde)">${tapasR}</div>
-          <div style="font-size:11px;color:var(--texto2)">Colocadas</div>
-        </div>
+        <div style="flex:1;text-align:center"><div style="font-size:28px;font-weight:700;color:var(--verde)">${tapasR}</div><div style="font-size:11px;color:var(--texto2)">Colocadas</div></div>
         <div style="width:1px;background:var(--gris2)"></div>
-        <div style="flex:1;text-align:center">
-          <div style="font-size:28px;font-weight:700;color:var(--rojo)">${tapasP}</div>
-          <div style="font-size:11px;color:var(--texto2)">Pendientes</div>
-        </div>
+        <div style="flex:1;text-align:center"><div style="font-size:28px;font-weight:700;color:var(--rojo)">${tapasP}</div><div style="font-size:11px;color:var(--texto2)">Pendientes</div></div>
       </div>
       <div style="height:8px;border-radius:4px;background:var(--gris2);overflow:hidden">
         <div style="height:100%;width:${totalTapas>0?Math.round(tapasR/totalTapas*100):0}%;background:var(--azul2);border-radius:4px"></div>
       </div>
       <div style="font-size:10px;color:var(--gris3);text-align:right;margin-top:2px">${totalTapas>0?Math.round(tapasR/totalTapas*100):0}% completado</div>
+    </div>
+
+    <div class="est-card">
+      <h3>📦 Tapas entregadas a cuadrillas</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:28px;font-weight:700;color:var(--azul)">${totalEntregas}</div>
+        <div style="font-size:11px;color:var(--gris3)">Total acumulado</div>
+      </div>
+      ${mesesEnt.length>0?mesesEnt.map(([m,v])=>`
+        <div class="barra-row">
+          <div class="barra-label">${MESES[parseInt(m)-1]}</div>
+          <div class="barra-wrap"><div class="barra-fill" style="width:${Math.round(v/maxMesEnt*100)}%;background:var(--azul2)"></div></div>
+          <div class="barra-val" style="color:var(--azul2)">${v}</div>
+        </div>`).join(''):'<p style="font-size:12px;color:var(--gris3)">Sin datos aún</p>'}
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
@@ -433,7 +471,6 @@ function renderEst(){
     <p style="font-size:11px;color:var(--gris3);text-align:center;padding-bottom:20px">Toca ↻ Actualizar para refrescar desde Google Sheets</p>
   </div>`;
 }
-
 cargarDatos();
 </script>
 </body>
