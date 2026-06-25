@@ -148,12 +148,8 @@ function parseCSV(txt){
 }
 
 function findHeaderRow(rows,hoja){
-  // Para TAPAS ENTREGAS buscar por FECHA y ZONA
   if(hoja==='TAPAS ENTREGAS'){
-    for(let i=0;i<Math.min(rows.length,8);i++){
-      const r=rows[i].join(',').toUpperCase();
-      if(r.includes('FECHA')&&r.includes('ZONA')&&r.includes('TIPO'))return i;
-    }
+    // Fila 1: banner, Fila 2: contador, Fila 3 (indice 2): encabezados
     return 2;
   }
   for(let i=0;i<Math.min(rows.length,8);i++){
