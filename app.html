@@ -204,15 +204,29 @@ function parseHoja(txt,hoja){
   const result=[];
   for(let i=hi+1;i<rows.length;i++){
     const r=rows[i];
+
+    // ── TAPAS ENTREGAS: estructura fija col0-4 ──
+    if(hoja==='TAPAS ENTREGAS'){
+      const fecha2=(r[0]||'').trim();
+      const zona2=(r[1]||'').trim();
+      const tipo2=(r[2]||'').trim();
+      const resp2=(r[3]||'').trim();
+      const cant2=(r[4]||'').trim();
+      if(!fecha2||!fecha2.includes('/'))continue;
+      if(fecha2.toUpperCase()==='FECHA'||fecha2.toUpperCase().includes('TOTAL'))continue;
+      result.push({
+        hoja,dir:resp2||'-',
+        fecha:fecha2,turno:'',zona:zona2,ot:'',cod:'',dist:'',
+        obs:'',estado:'',capataz:resp2,maq:tipo2,ubicacion:'',
+        cant:cant2,tapas:parseInt(cant2)||0,
+      });
+      continue;
+    }
+
+    // ── Resto de hojas ──
     const dir=iDir>=0?r[iDir]:'';
     const est=iEst>=0?(r[iEst]||'').trim():'';
-    // TAPAS ENTREGAS no tiene ESTADO, usar FECHA como validador
-    if(hoja==='TAPAS ENTREGAS'){
-      const fecha=iFecha>=0?(r[iFecha]||''):'';
-      if(!fecha||!fecha.trim())continue;
-    } else {
-      if(!dir||!dir.trim()||!est||est==='ESTADO')continue;
-    }
+    if(!dir||!dir.trim()||!est||est==='ESTADO')continue;
     const cod=iCod>=0?(r[iCod]||'').trim():'';
     const obs=iObs>=0?(r[iObs]||''):'';
     result.push({
@@ -226,7 +240,7 @@ function parseHoja(txt,hoja){
       capataz:iCap>=0?(r[iCap]||''):'',
       maq:iMaq>=0?(r[iMaq]||''):'',
       ubicacion:iUbic>=0?(r[iUbic]||''):'',
-      tapas:contarTapas(obs),
+      cant:'',tapas:contarTapas(obs),
     });
   }
   return result;
