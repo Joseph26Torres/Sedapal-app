@@ -89,7 +89,7 @@ header p{font-size:11px;opacity:.75;margin-top:2px}
   <div class="tab" onclick="cambiarTab('PIQUE')">Pique</div>
   <div class="tab" onclick="cambiarTab('REPARACIONES')">Reparaciones</div>
   <div class="tab" onclick="cambiarTab('MAQUINARIAS')">Maquinarias</div>
-  <div class="tab" onclick="cambiarTab('TAPAS ENTREGAS')" style="background:rgba(255,255,255,.15)">📦 Entregas</div>
+  <div class="tab" onclick="cambiarTab('TAPAS ENTREGAS')" style="background:rgba(255,255,255,.15)">Tapas Entregadas</div>
 </div>
 <div id="stats-bar" class="stats" style="display:none"></div>
 <div id="mes-bar" style="display:none;background:var(--blanco);padding:6px 12px;border-bottom:1px solid var(--gris2);overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch">
@@ -147,7 +147,15 @@ function parseCSV(txt){
   });
 }
 
-function findHeaderRow(rows){
+function findHeaderRow(rows,hoja){
+  // Para TAPAS ENTREGAS buscar por FECHA y ZONA
+  if(hoja==='TAPAS ENTREGAS'){
+    for(let i=0;i<Math.min(rows.length,8);i++){
+      const r=rows[i].join(',').toUpperCase();
+      if(r.includes('FECHA')&&r.includes('ZONA')&&r.includes('TIPO'))return i;
+    }
+    return 2;
+  }
   for(let i=0;i<Math.min(rows.length,8);i++){
     const r=rows[i].join(',').toUpperCase();
     if(r.includes('DIRECCI')&&r.includes('ESTADO'))return i;
@@ -188,7 +196,7 @@ function parseMapsUrl(d){
 
 function parseHoja(txt,hoja){
   const rows=parseCSV(txt);
-  const hi=findHeaderRow(rows);
+  const hi=findHeaderRow(rows,hoja);
   const headers=rows[hi].map(h=>norm(h));
   const get=name=>headers.findIndex(h=>h.includes(name));
   const iDir=get('DIRECCI');const iFecha=get('FECHA');const iTurno=get('TURNO');
@@ -202,7 +210,13 @@ function parseHoja(txt,hoja){
     const r=rows[i];
     const dir=iDir>=0?r[iDir]:'';
     const est=iEst>=0?(r[iEst]||'').trim():'';
-    if(!dir||!dir.trim()||!est||est==='ESTADO')continue;
+    // TAPAS ENTREGAS no tiene ESTADO, usar FECHA como validador
+    if(hoja==='TAPAS ENTREGAS'){
+      const fecha=iFecha>=0?(r[iFecha]||''):'';
+      if(!fecha||!fecha.trim())continue;
+    } else {
+      if(!dir||!dir.trim()||!est||est==='ESTADO')continue;
+    }
     const cod=iCod>=0?(r[iCod]||'').trim():'';
     const obs=iObs>=0?(r[iObs]||''):'';
     result.push({
@@ -414,7 +428,7 @@ function renderEst(){
     </div>
 
     <div class="est-card">
-      <h3>📦 Tapas entregadas a cuadrillas</h3>
+      <h3>Tapas entregadas a cuadrillas</h3>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div style="font-size:28px;font-weight:700;color:var(--azul)">${totalEntregas}</div>
         <div style="font-size:11px;color:var(--gris3)">Total acumulado</div>
