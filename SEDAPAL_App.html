@@ -332,8 +332,13 @@ function filtrar(){
         ${d.ot?`<span>OT ${d.ot}</span>`:''}
         ${d.maq?`<span>🔧${d.maq}</span>`:''}
       </div>
-      ${d.obs?`<div class="obs">${d.obs.slice(0,90)}${d.obs.length>90?'…':''}</div>`:''}
-      ${tieneUbic?`<span class="coord-badge">📍 Coordenadas exactas</span>`:''}
+      ${d.hoja==='TAPAS ENTREGAS'?`
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+          <span style="font-size:12px;color:var(--texto2)">👷 ${d.capataz||'-'} &nbsp;|&nbsp; ${d.zona||'-'} &nbsp;|&nbsp; ${d.maq||'-'}</span>
+          <span style="font-size:18px;font-weight:700;color:var(--azul)">${d.cant||0} tapas</span>
+        </div>`:
+        `${d.obs?`<div class="obs">${d.obs.slice(0,90)}${d.obs.length>90?'…':''}</div>`:''}
+        ${tieneUbic?`<span class="coord-badge">📍 Coordenadas exactas</span>`:''}`}
     </div>`;
   }).join('')+'</div>';
 }
@@ -355,7 +360,12 @@ function abrirModal(i){
     ${d.maq?`<div class="modal-row"><div class="modal-label">Maquinaria</div><div class="modal-val">${d.maq}</div></div>`:''}
     ${d.capataz?`<div class="modal-row"><div class="modal-label">Capataz</div><div class="modal-val">${d.capataz}</div></div>`:''}
     ${d.obs?`<div class="modal-obs">${d.obs}</div>`:''}
-    <a href="${mapsUrl}" target="_blank" class="maps-btn">📍 ${tieneUbic?'Ver ubicación exacta en Maps':'Buscar en Google Maps'}</a>
+    ${d.hoja==='TAPAS ENTREGAS'?`
+      <div class="modal-row"><div class="modal-label">Responsable</div><div class="modal-val">${d.capataz||'-'}</div></div>
+      <div class="modal-row"><div class="modal-label">Zona</div><div class="modal-val">${d.zona||'-'}</div></div>
+      <div class="modal-row"><div class="modal-label">Tipo</div><div class="modal-val">${d.maq||'-'}</div></div>
+      <div class="modal-row"><div class="modal-label">Cant. Tapas</div><div class="modal-val" style="font-size:20px;font-weight:700;color:var(--azul)">${d.cant||0}</div></div>
+    `:`<a href="${mapsUrl}" target="_blank" class="maps-btn">📍 ${tieneUbic?'Ver ubicación exacta en Maps':'Buscar en Google Maps'}</a>`}
     <button class="close-btn" onclick="cerrarModal()">Cerrar</button>`;
   document.getElementById('overlay').classList.add('open');
 }
@@ -380,13 +390,13 @@ function renderEst(){
 
   // Tapas entregadas: leer columna CANT. TAPAS (col 5 aprox) o buscar numero en obs
   const totalEntregas=entregas.reduce((a,d)=>{
-    const v=parseInt(d.cant||'')||parseInt((d.obs||'').replace(/[^0-9]/g,''))||0;
+    const v=parseInt(d.cant||d.tapas||0)||0;
     return a+v;
   },0);
   const porMesEnt={};
   entregas.forEach(d=>{
     const m=mesDeReg(d);
-    const v=parseInt(d.cant||'')||parseInt((d.obs||'').replace(/[^0-9]/g,''))||0;
+    const v=parseInt(d.cant||d.tapas||0)||0;
     if(m&&v>0)porMesEnt[m]=(porMesEnt[m]||0)+v;
   });
   const mesesEnt=Object.entries(porMesEnt).sort((a,b)=>parseInt(a[0])-parseInt(b[0]));
